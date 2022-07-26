@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, json
 from flask_migrate import Migrate
 from models import db, Todo, Contact
 
@@ -39,11 +39,10 @@ def create_todos():
 @app.route('/api/todos/<int:id>', methods=['PUT'])
 def update_todos(id):
     
-    data = request.get_json()
     
     todo = Todo.query.get(id)
-    todo.label = data['label']
-    todo.done = data['done']
+    todo.label = request.json.get('label')
+    todo.done = request.json.get('done')
 
     db.session.commit() # Finaliza el query
 

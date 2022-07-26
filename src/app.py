@@ -1,60 +1,61 @@
 from flask import Flask, jsonify, request
+from flask_migrate import Migrate
+from models import db, Todo, Contact
 
 app = Flask(__name__)
-# Todo mi codigo debe estar de aqui hacia abajo
-app.config["DEBUG"] = True
-app.config["ENV"] = "development"
+app.config['DEBUG'] = True
+app.config['ENV'] = 'development'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database_dev.db'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root@localhost:3306/flask_db'
+db.init_app(app)
+Migrate(app, db) # db init, db migrate, db upgrade
 
+@app.route('/api/todos', methods=['GET'])
+def get_todos():
+    todos = Todo.query.all()
+    todos = list(map(lambda todo: todo.serialize(), todos))
+    return jsonify(todos), 200
 
-@app.route('/', methods=['GET', 'POST', 'PUT', 'DELETE'])
-def root():
-    print("Hola Mundo")
-    return """<h1>Hola Mundo</h1><p>Este es mi parrafo</p>"""
+@app.route('/api/todos/<int:id>', methods=['GET'])
+def get_todos_by_id(id):
+    todo = Todo.query.get(id)
+    return jsonify(todo.serialize()), 200
 
-@app.route('/api/contact', methods=['GET'])
-def contact():
-    return "Accediendo a la ruta contact"
-
-@app.route('/api/about/<name>', methods=['POST', 'PUT']) # request
-def about(name):
-
-    if request.method == 'POST': # verificar si estamos llegando por el metodo POST
-
-        msg = {
-            "method": request.method,
-            "status": "success",
-            "code": 200,
-            "name": name
-        }
-
-        return jsonify(msg)
-
-    if request.method == 'PUT': # verificar si estamos llegando por el metodo PUT
-        msg = {
-            "method": request.method,
-            "status": "success",
-            "code": 200,
-            "name": name
-        }
-
-        return jsonify(msg) # response
-
-
-@app.route('/api/save-data', methods=['POST'])
-def save_data():
+@app.route('/api/todos', methods=['POST'])
+def create_todos():
 
     data = request.get_json()
+    
+    todo = Todo()
+    todo.label = data['label']
+    todo.done = data['done']
 
-    data = {
-        "data": request.json.get('data'),
-       # "persona": request.json.get('persona')
-       "persona": data["persona"]
-    }
+    db.session.add(todo) # INSERT INTO todos (label, done) VALUES ('My First Task', false);
+    db.session.commit() # Finaliza el query
 
-    return jsonify(data)
+    return jsonify(todo.serialize()), 201
+
+@app.route('/api/todos/<int:id>', methods=['PUT'])
+def update_todos(id):
+    
+    data = request.get_json()
+    
+    todo = Todo.query.get(id)
+    todo.label = data['label']
+    todo.done = data['done']
+
+    db.session.commit() # Finaliza el query
+
+    return jsonify(todo.serialize()), 200
+
+@app.route('/api/todos/<int:id>', methods=['DELETE'])
+def delete_todos_by_id(id):
+    todo = Todo.query.get(id)
+    db.session.delete(todo)
+    db.session.commit()
+    return jsonify({"msg": "Todo deleted"}), 200
 
 
-# Todo mi codigo debe estar de aqui hacia arriba
 if __name__ == '__main__':
-    """ app.run(debug=True, port=3000, host="0.0.0.0") """
     app.run()

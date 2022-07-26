@@ -1,1 +1,6 @@
 mysql_data/
+migrations/
+
+.venv/
+
+database_dev.db

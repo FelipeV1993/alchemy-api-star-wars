@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, json
 from flask_migrate import Migrate
-from models import db, Todo, Contact
+from models import db, Todo, Contact, User, People, Planets, Vehicles, Favorites
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -17,10 +17,22 @@ def get_todos():
     todos = list(map(lambda todo: todo.serialize(), todos))
     return jsonify(todos), 200
 
+@app.route('/api/User', methods=['GET'])
+def get_User():
+    User = User.query.all()
+    User = list(map(lambda User: User.serialize(), User))
+    return jsonify(User), 200
+
+
 @app.route('/api/todos/<int:id>', methods=['GET'])
 def get_todos_by_id(id):
     todo = Todo.query.get(id)
     return jsonify(todo.serialize()), 200
+
+@app.route('/api/User/<int:id>', methods=['GET'])
+def get_User_by_id(id):
+    User = User.query.get(id)
+    return jsonify(User.serialize()), 200
 
 @app.route('/api/todos', methods=['POST'])
 def create_todos():
@@ -36,6 +48,41 @@ def create_todos():
 
     return jsonify(todo.serialize()), 201
 
+@app.route('/api/User', methods=['POST'])
+def create_User():
+
+    data = request.get_json()
+    
+    User = User()
+    User.user_name = data['user_name']
+    User.password = data['password']
+    User.email = data['email']
+    User.name = data['name']
+    User.last_name = data['last_name']
+
+
+    db.session.add(User) # INSERT INTO todos (label, done) VALUES ('My First Task', false);
+    db.session.commit() # Finaliza el query
+
+    return jsonify(User.serialize()), 201
+
+@app.route('/api/User/<int:id>', methods=['PUT'])
+def update_User(id):
+    
+    
+    User = User.query.get(id)
+    User.user_name = request.json.get('user_name')
+    User.password = request.json.get('password')
+    User.email = request.json.get('email')
+    User.name = request.json.get('name')
+    User.last_name = request.json.get('last_name')
+
+
+    db.session.commit() # Finaliza el query
+
+    return jsonify(User.serialize()), 200
+
+
 @app.route('/api/todos/<int:id>', methods=['PUT'])
 def update_todos(id):
     
@@ -48,6 +95,7 @@ def update_todos(id):
 
     return jsonify(todo.serialize()), 200
 
+
 @app.route('/api/todos/<int:id>', methods=['DELETE'])
 def delete_todos_by_id(id):
     todo = Todo.query.get(id)
@@ -55,6 +103,12 @@ def delete_todos_by_id(id):
     db.session.commit()
     return jsonify({"msg": "Todo deleted"}), 200
 
+@app.route('/api/User/<int:id>', methods=['DELETE'])
+def delete_User_by_id(id):
+    User = User.query.get(id)
+    db.session.delete(User)
+    db.session.commit()
+    return jsonify({"msg": "User deleted"}), 200
 
 if __name__ == '__main__':
     app.run()

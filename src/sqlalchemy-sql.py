@@ -1,4 +1,4 @@
-from models import db, Todo, Contact
+from models import db, Todo, Contact, User, People, Planets, Vehicles, Favorites
 
 """ 
 SQL:

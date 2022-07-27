@@ -204,14 +204,14 @@ class Favorites(db.Model):
     # Here we define columns for the table person
     # Notice that each column is also a normal Python instance attribute.
 
-    user_id = Column(db.Integer, ForeignKey('User.id'), primary_key=True)
+    id = Column(db.Integer, ForeignKey('User.id'), primary_key=True)
     planets_id = Column(db.Integer, ForeignKey('Planets.id'))
     vehicles_id = Column(db.Integer, ForeignKey('Vehicles.id'))
     people_id = Column(db.Integer, ForeignKey('People.id'))
 
     def serialize(self):
         return {
-            "user_id": self.user_id,
+            "id": self.id,
             "planets_id": self.planets_id,
             "vehicles_id": self.vehicles_id,
             "people_id": self.people_id,
